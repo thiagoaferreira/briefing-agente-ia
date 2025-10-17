@@ -217,13 +217,13 @@ const AIAgentForm = () => {
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#0055e5] to-[#9c27b0] text-white py-16">
+      <div className="bg-[#12172d] text-white py-16">
         <div className="max-w-5xl mx-auto px-6">
           <div className="flex flex-col items-center text-center mb-8">
             <img 
               src="https://1000ideiascompany.com.br/wp-content/uploads/2025/04/Logo_horizontal_1000Ideias-Preto-origi-sem-fundo-e1745093705536.png" 
               alt="1000Ideias Company" 
-              className="h-16 mb-6 bg-white px-6 py-3 rounded-xl"
+              className="h-16 mb-6 bg-black px-6 py-3 rounded-xl"
             />
           </div>
           <h1 className="text-5xl font-extrabold mb-4 text-center">
