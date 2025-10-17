@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Save, Download, Send, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Send, Plus, Trash2, Sparkles, Bot, Zap } from 'lucide-react';
 
 const AIAgentForm = () => {
   const [expandedSections, setExpandedSections] = useState({
@@ -14,52 +14,37 @@ const AIAgentForm = () => {
   });
 
   const [formData, setFormData] = useState({
-    // Seção 1: Negócio
     nomeEmpresa: '',
     segmento: '',
     descricaoNegocio: '',
     produtosServicos: '',
     diferenciais: '',
     missaoValores: '',
-    
-    // Seção 2: Público-Alvo
     perfilCliente: '',
     doresNecessidades: '',
     linguagemCliente: '',
     nivelTecnico: '',
-    
-    // Seção 3: Atendimento
     canalAtendimento: [],
     horarioAtendimento: '',
     volumeAtendimentos: '',
     tempoRespostaEsperado: '',
     principaisDuvidas: '',
     objecoesComuns: '',
-    
-    // Seção 4: Tom e Personalidade
     tomVoz: '',
     personalidade: [],
     exemplosInteracao: '',
     evitar: '',
-    
-    // Seção 5: Processos
     fluxoAtendimento: '',
     quandoTransferir: '',
     informacoesCapturar: '',
     acoesPosAtendimento: '',
-    
-    // Seção 6: Integração
     sistemasIntegrar: '',
     dadosDisponiveis: '',
     acoesExecutar: '',
-    
-    // Seção 7: Restrições
     naoPodeFalar: '',
     limitesAgente: '',
     politicasEspecificas: '',
     exemplosErros: '',
-    
-    // Seção 8: FAQ
     faqItems: [
       { pergunta: '', resposta: '' },
       { pergunta: '', resposta: '' },
@@ -67,11 +52,7 @@ const AIAgentForm = () => {
       { pergunta: '', resposta: '' },
       { pergunta: '', resposta: '' }
     ],
-    
-    // Extras
     observacoesAdicionais: '',
-    
-    // Webhook N8N - Fixo
     webhookUrl: 'https://webhook.dev.1000ideiasia.com.br/webhook/1a651488-6e4c-4f3d-9aa4-919c3c9861a4'
   });
 
@@ -124,8 +105,17 @@ const AIAgentForm = () => {
   };
 
   const sendToN8N = async () => {
-    if (!formData.webhookUrl) {
-      alert('Por favor, configure a URL do Webhook N8N antes de enviar.');
+    if (!formData.nomeEmpresa || !formData.segmento || !formData.descricaoNegocio) {
+      alert('Por favor, preencha pelo menos os campos obrigatórios da seção "Informações sobre o Negócio".');
+      return;
+    }
+
+    const faqsPreenchidos = formData.faqItems.filter(item => 
+      item.pergunta.trim() !== '' && item.resposta.trim() !== ''
+    );
+    
+    if (faqsPreenchidos.length < 5) {
+      alert('Por favor, preencha pelo menos 5 perguntas e respostas no FAQ.');
       return;
     }
 
@@ -135,73 +125,45 @@ const AIAgentForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          dataEnvio: new Date().toISOString(),
+          timestamp: Date.now()
+        })
       });
 
       if (response.ok) {
-        alert('Dados enviados com sucesso para o N8N!');
+        alert('✅ Dados enviados com sucesso!\n\nO briefing do agente foi registrado e será processado.');
       } else {
-        alert('Erro ao enviar dados. Verifique a URL do webhook.');
+        const errorData = await response.text();
+        alert('❌ Erro ao enviar dados.\n\nDetalhes: ' + errorData);
       }
     } catch (error) {
-      alert('Erro ao enviar dados: ' + error.message);
+      alert('❌ Erro ao enviar dados.\n\nVerifique sua conexão: ' + error.message);
     }
   };
 
-  const exportData = () => {
-    const dataStr = JSON.stringify(formData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `briefing-agente-ia-${formData.nomeEmpresa || 'cliente'}.json`;
-    link.click();
-  };
-
-  const generatePrompt = () => {
-    let prompt = "# CONTEXTO DO AGENTE DE IA\n\n";
-    
-    prompt += `## Sobre a Empresa\n`;
-    prompt += `Empresa: ${formData.nomeEmpresa}\n`;
-    prompt += `Segmento: ${formData.segmento}\n`;
-    prompt += `Descrição: ${formData.descricaoNegocio}\n`;
-    prompt += `Produtos/Serviços: ${formData.produtosServicos}\n`;
-    prompt += `Diferenciais: ${formData.diferenciais}\n\n`;
-    
-    prompt += `## Público-Alvo\n`;
-    prompt += `Perfil: ${formData.perfilCliente}\n`;
-    prompt += `Dores/Necessidades: ${formData.doresNecessidades}\n`;
-    prompt += `Linguagem: ${formData.linguagemCliente}\n\n`;
-    
-    prompt += `## Instruções de Atendimento\n`;
-    prompt += `Tom de Voz: ${formData.tomVoz}\n`;
-    prompt += `Personalidade: ${formData.personalidade.join(', ')}\n`;
-    prompt += `Principais Dúvidas: ${formData.principaisDuvidas}\n`;
-    prompt += `Objeções Comuns: ${formData.objecoesComuns}\n\n`;
-    
-    prompt += `## Restrições\n`;
-    prompt += `Não deve falar sobre: ${formData.naoPodeFalar}\n`;
-    prompt += `Evitar: ${formData.evitar}\n`;
-    
-    const promptBlob = new Blob([prompt], { type: 'text/plain' });
-    const url = URL.createObjectURL(promptBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `prompt-agente-${formData.nomeEmpresa || 'cliente'}.txt`;
-    link.click();
-  };
-
-  const Section = ({ title, section, children }) => (
-    <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden">
+  const Section = ({ title, section, icon: Icon, children }) => (
+    <div className="rounded-2xl mb-6 overflow-hidden shadow-lg">
       <button
         onClick={() => toggleSection(section)}
-        className="w-full px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 flex justify-between items-center hover:from-blue-100 hover:to-indigo-100 transition-colors"
+        className="w-full px-8 py-6 bg-gradient-to-r from-[#0055e5] to-[#9c27b0] flex justify-between items-center hover:opacity-90 transition-all group"
       >
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        {expandedSections[section] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-white/20 backdrop-blur-sm rounded-lg">
+            <Icon className="text-white" size={24} />
+          </div>
+          <h2 className="text-xl font-bold text-white">{title}</h2>
+        </div>
+        <div className="flex-shrink-0">
+          {expandedSections[section] ? 
+            <ChevronUp size={24} className="text-white" /> : 
+            <ChevronDown size={24} className="text-white/80" />
+          }
+        </div>
       </button>
       {expandedSections[section] && (
-        <div className="p-6 bg-white">
+        <div className="p-8 bg-white">
           {children}
         </div>
       )}
@@ -209,8 +171,8 @@ const AIAgentForm = () => {
   );
 
   const Input = ({ label, field, placeholder, type = "text", rows = 3, required = false }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {type === "textarea" ? (
@@ -219,7 +181,7 @@ const AIAgentForm = () => {
           onChange={(e) => handleChange(field, e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
         />
       ) : (
         <input
@@ -227,25 +189,25 @@ const AIAgentForm = () => {
           value={formData[field]}
           onChange={(e) => handleChange(field, e.target.value)}
           placeholder={placeholder}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
         />
       )}
     </div>
   );
 
   const CheckboxGroup = ({ label, field, options }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-      <div className="space-y-2">
+    <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-3">{label}</label>
+      <div className="grid grid-cols-2 gap-3">
         {options.map(option => (
-          <label key={option} className="flex items-center">
+          <label key={option} className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
             <input
               type="checkbox"
               checked={formData[field].includes(option)}
               onChange={() => handleCheckboxChange(field, option)}
-              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="mr-3 h-5 w-5 text-[#0055e5] focus:ring-[#0055e5] border-gray-300 rounded"
             />
-            <span className="text-sm text-gray-700">{option}</span>
+            <span className="text-sm text-gray-700 font-medium">{option}</span>
           </label>
         ))}
       </div>
@@ -253,19 +215,55 @@ const AIAgentForm = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Formulário de Briefing</h1>
-          <p className="text-gray-600 mb-4">Agente de IA - Atendimento ao Cliente</p>
-          <p className="text-sm text-gray-500">Preencha o máximo de informações possível para criar um agente personalizado e eficiente.</p>
+    <div className="min-h-screen bg-black">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#0055e5] to-[#9c27b0] text-white py-16">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="flex flex-col items-center text-center mb-8">
+            <img 
+              src="https://1000ideiascompany.com.br/wp-content/uploads/2025/04/Logo_horizontal_1000Ideias-Preto-origi-sem-fundo-e1745093705536.png" 
+              alt="1000Ideias Company" 
+              className="h-16 mb-6 bg-white px-6 py-3 rounded-xl"
+            />
+          </div>
+          <h1 className="text-5xl font-extrabold mb-4 text-center">
+            Briefing de Agente de IA
+          </h1>
+          <p className="text-xl text-white/90 max-w-2xl mx-auto text-center">
+            Preencha este formulário para criarmos um agente de IA personalizado e inteligente para o seu negócio
+          </p>
+        </div>
+      </div>
+
+      {/* Form Container */}
+      <div className="max-w-5xl mx-auto px-6 py-12">
+        {/* Info Card */}
+        <div className="rounded-2xl shadow-xl mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-[#0055e5] to-[#9c27b0] px-8 py-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Sparkles className="text-white" size={28} />
+              </div>
+              <h3 className="text-2xl font-bold text-white">
+                Como funciona?
+              </h3>
+            </div>
+          </div>
+          <div className="bg-white p-8">
+            <p className="text-gray-600 leading-relaxed text-lg">
+              Quanto mais detalhadas forem suas respostas, melhor será o resultado final. 
+              Nosso sistema de IA utilizará estas informações para criar um agente totalmente 
+              alinhado com sua marca e objetivos de negócio.
+            </p>
+          </div>
         </div>
 
-        <Section title="1. Informações sobre o Negócio" section="negocio">
-          <Input label="Nome da Empresa" field="nomeEmpresa" placeholder="Ex: TechSolutions Brasil" required />
-          <Input label="Segmento/Nicho" field="segmento" placeholder="Ex: SaaS, E-commerce, Consultoria..." required />
+        {/* Sections */}
+        <Section title="1. Informações sobre o Negócio" section="negocio" icon={Zap}>
+          <Input label="Nome da Empresa" field="nomeEmpresa" placeholder="Ex: 1000Ideias Company" required />
+          <Input label="Segmento/Nicho" field="segmento" placeholder="Ex: Automação com IA, Tráfego Pago, Marketing Digital..." required />
           <Input label="Descrição do Negócio" field="descricaoNegocio" type="textarea" rows={4} 
-                 placeholder="Descreva o que a empresa faz, seus principais objetivos..." required />
+                 placeholder="Descreva o que a empresa faz, seus principais objetivos e diferenciais..." required />
           <Input label="Produtos/Serviços Oferecidos" field="produtosServicos" type="textarea" 
                  placeholder="Liste e descreva brevemente os principais produtos/serviços" required />
           <Input label="Diferenciais Competitivos" field="diferenciais" type="textarea" 
@@ -274,7 +272,7 @@ const AIAgentForm = () => {
                  placeholder="Princípios e propósito da empresa" />
         </Section>
 
-        <Section title="2. Público-Alvo" section="publico">
+        <Section title="2. Público-Alvo" section="publico" icon={Bot}>
           <Input label="Perfil do Cliente Ideal" field="perfilCliente" type="textarea" 
                  placeholder="Idade, profissão, cargo, tamanho da empresa, localização..." required />
           <Input label="Principais Dores e Necessidades" field="doresNecessidades" type="textarea" rows={4}
@@ -285,7 +283,7 @@ const AIAgentForm = () => {
                  placeholder="Ex: Leigo, Intermediário, Especialista" />
         </Section>
 
-        <Section title="3. Configurações de Atendimento" section="atendimento">
+        <Section title="3. Configurações de Atendimento" section="atendimento" icon={Sparkles}>
           <CheckboxGroup 
             label="Canais de Atendimento" 
             field="canalAtendimento"
@@ -303,7 +301,7 @@ const AIAgentForm = () => {
                  placeholder="Quais objeções os clientes costumam levantar? Como superá-las?" />
         </Section>
 
-        <Section title="4. Tom de Voz e Personalidade" section="tom">
+        <Section title="4. Tom de Voz e Personalidade" section="tom" icon={Bot}>
           <Input label="Tom de Voz Desejado" field="tomVoz" type="textarea" 
                  placeholder="Ex: Profissional e acolhedor, Descontraído e próximo, Técnico e preciso..." required />
           <CheckboxGroup 
@@ -320,7 +318,7 @@ const AIAgentForm = () => {
                  placeholder="Ex: Gírias específicas, termos técnicos demais, respostas muito longas..." />
         </Section>
 
-        <Section title="5. Processos e Fluxos" section="processos">
+        <Section title="5. Processos e Fluxos" section="processos" icon={Zap}>
           <Input label="Fluxo de Atendimento Ideal" field="fluxoAtendimento" type="textarea" rows={6}
                  placeholder="Descreva o passo a passo do atendimento: saudação, qualificação, solução, encerramento..." required />
           <Input label="Quando Transferir para Humano" field="quandoTransferir" type="textarea" rows={4}
@@ -331,7 +329,7 @@ const AIAgentForm = () => {
                  placeholder="Enviar email, agendar follow-up, criar ticket, adicionar ao CRM..." />
         </Section>
 
-        <Section title="6. Integrações e Dados" section="integracao">
+        <Section title="6. Integrações e Dados" section="integracao" icon={Sparkles}>
           <Input label="Sistemas a Integrar" field="sistemasIntegrar" type="textarea" 
                  placeholder="CRM, ERP, plataforma de agendamento, base de conhecimento..." />
           <Input label="Dados Disponíveis" field="dadosDisponiveis" type="textarea" 
@@ -340,7 +338,7 @@ const AIAgentForm = () => {
                  placeholder="Agendar reuniões, enviar propostas, criar tickets, consultar pedidos..." />
         </Section>
 
-        <Section title="7. Restrições e Limitações" section="restricoes">
+        <Section title="7. Restrições e Limitações" section="restricoes" icon={Bot}>
           <Input label="Assuntos Proibidos" field="naoPodeFalar" type="textarea" rows={4}
                  placeholder="Sobre o que o agente NÃO deve falar ou responder?" required />
           <Input label="Limites de Atuação" field="limitesAgente" type="textarea" 
@@ -351,29 +349,29 @@ const AIAgentForm = () => {
                  placeholder="Situações ou respostas que já deram problema no passado" />
         </Section>
 
-        <Section title="8. FAQ - Perguntas e Respostas Frequentes" section="faq">
-          <p className="text-sm text-gray-600 mb-4">
-            Adicione pelo menos 5 perguntas e respostas que são comuns no seu atendimento. 
+        <Section title="8. FAQ - Perguntas e Respostas Frequentes" section="faq" icon={Sparkles}>
+          <p className="text-sm text-gray-600 mb-6 bg-blue-50 p-4 rounded-xl border-l-4 border-[#0055e5]">
+            💡 Adicione pelo menos 5 perguntas e respostas que são comuns no seu atendimento. 
             Isso ajudará o agente a responder de forma mais precisa e consistente.
           </p>
           
           {formData.faqItems.map((item, index) => (
-            <div key={index} className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold text-gray-700">FAQ #{index + 1}</h3>
+            <div key={index} className="mb-6 p-6 border-2 border-gray-200 rounded-2xl bg-white hover:border-[#0055e5] transition-colors">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-gray-800 text-lg">FAQ #{index + 1}</h3>
                 {formData.faqItems.length > 5 && (
                   <button
                     onClick={() => removeFaqItem(index)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
+                    className="text-red-500 hover:text-red-700 transition-colors p-2 hover:bg-red-50 rounded-lg"
                     type="button"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={20} />
                   </button>
                 )}
               </div>
               
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Pergunta {index < 5 && <span className="text-red-500">*</span>}
                 </label>
                 <input
@@ -381,12 +379,12 @@ const AIAgentForm = () => {
                   value={item.pergunta}
                   onChange={(e) => handleFaqChange(index, 'pergunta', e.target.value)}
                   placeholder="Ex: Qual é o prazo de entrega?"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Resposta {index < 5 && <span className="text-red-500">*</span>}
                 </label>
                 <textarea
@@ -394,7 +392,7 @@ const AIAgentForm = () => {
                   onChange={(e) => handleFaqChange(index, 'resposta', e.target.value)}
                   placeholder="Ex: O prazo de entrega varia de 3 a 7 dias úteis após a confirmação do pagamento..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
                 />
               </div>
             </div>
@@ -402,55 +400,48 @@ const AIAgentForm = () => {
           
           <button
             onClick={addFaqItem}
-            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-[#0055e5] hover:text-[#0055e5] hover:bg-blue-50 transition-all flex items-center justify-center gap-3 font-semibold"
             type="button"
           >
-            <Plus size={20} />
+            <Plus size={24} />
             Adicionar Mais uma Pergunta
           </button>
         </Section>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">⚙️ Configuração de Integração</h3>
-          <Input label="URL do Webhook N8N" field="webhookUrl" 
-                 placeholder="https://seu-n8n.com/webhook/seu-endpoint" />
-          <p className="text-xs text-gray-500 mt-2">
-            Cole aqui a URL do webhook do N8N para enviar os dados automaticamente
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        {/* Observações Finais */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <Input label="Observações Adicionais" field="observacoesAdicionais" type="textarea" rows={5}
                  placeholder="Qualquer informação adicional importante para o desenvolvimento do agente..." />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={exportData}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Save size={20} />
-            Salvar JSON
-          </button>
-          <button
-            onClick={generatePrompt}
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Download size={20} />
-            Gerar Prompt
-          </button>
+        {/* Submit Button */}
+        <div className="mb-12">
           <button
             onClick={sendToN8N}
-            className="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-[#0055e5] to-[#9c27b0] text-white px-8 py-6 rounded-2xl font-bold text-xl hover:shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-4 group"
           >
-            <Send size={20} />
-            Enviar para N8N
+            <Send size={28} className="group-hover:translate-x-1 transition-transform" />
+            Enviar Briefing do Agente de IA
           </button>
+          
+          <div className="text-center mt-6 space-y-2">
+            <p className="text-gray-300 flex items-center justify-center gap-2">
+              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Seus dados serão enviados com segurança
+            </p>
+            <p className="text-sm text-gray-400">
+              Após o envio, nossa equipe criará o agente personalizado para você
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div className="mt-4 text-center text-sm text-gray-500">
-          <p>💡 <strong>Dica:</strong> Configure o webhook do N8N para receber os dados automaticamente</p>
-          <p className="mt-1">Você também pode salvar localmente em JSON ou gerar um prompt pronto</p>
+      {/* Footer */}
+      <div className="bg-gradient-to-r from-[#0055e5] to-[#9c27b0] text-white py-8">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <p className="text-white/90">
+            Powered by <span className="font-bold">1000Ideias Company</span> • Transformando Dados em Resultados
+          </p>
         </div>
       </div>
     </div>
