@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp, Send, Plus, Trash2, Sparkles, Bot, Zap } from 'lucide-react';
 
 const AIAgentForm = () => {
@@ -63,30 +63,30 @@ const AIAgentForm = () => {
     }));
   };
 
-  const handleChange = (field, value) => {
+  const handleChange = useCallback((field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
+  }, []);
 
-  const handleCheckboxChange = (field, value) => {
+  const handleCheckboxChange = useCallback((field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: prev[field].includes(value)
         ? prev[field].filter(item => item !== value)
         : [...prev[field], value]
     }));
-  };
+  }, []);
 
-  const handleFaqChange = (index, field, value) => {
+  const handleFaqChange = useCallback((index, field, value) => {
     setFormData(prev => ({
       ...prev,
       faqItems: prev.faqItems.map((item, i) => 
         i === index ? { ...item, [field]: value } : item
       )
     }));
-  };
+  }, []);
 
   const addFaqItem = () => {
     setFormData(prev => ({
@@ -170,36 +170,30 @@ const AIAgentForm = () => {
     </div>
   );
 
-  const Input = ({ label, field, placeholder, type = "text", rows = 3, required = false }) => {
-    const handleInputChange = (e) => {
-      handleChange(field, e.target.value);
-    };
-
-    return (
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        {type === "textarea" ? (
-          <textarea
-            value={formData[field] || ''}
-            onChange={handleInputChange}
-            placeholder={placeholder}
-            rows={rows}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
-          />
-        ) : (
-          <input
-            type={type}
-            value={formData[field] || ''}
-            onChange={handleInputChange}
-            placeholder={placeholder}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
-          />
-        )}
-      </div>
-    );
-  };
+  const Input = ({ label, field, placeholder, type = "text", rows = 3, required = false }) => (
+    <div className="mb-6">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {type === "textarea" ? (
+        <textarea
+          value={formData[field] || ''}
+          onChange={(e) => handleChange(field, e.target.value)}
+          placeholder={placeholder}
+          rows={rows}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
+        />
+      ) : (
+        <input
+          type={type}
+          value={formData[field] || ''}
+          onChange={(e) => handleChange(field, e.target.value)}
+          placeholder={placeholder}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
+        />
+      )}
+    </div>
+  );
 
   const CheckboxGroup = ({ label, field, options }) => (
     <div className="mb-6">
