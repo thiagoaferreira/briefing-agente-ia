@@ -170,30 +170,36 @@ const AIAgentForm = () => {
     </div>
   );
 
-  const Input = ({ label, field, placeholder, type = "text", rows = 3, required = false }) => (
-    <div className="mb-6">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      {type === "textarea" ? (
-        <textarea
-          value={formData[field]}
-          onChange={(e) => handleChange(field, e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
-        />
-      ) : (
-        <input
-          type={type}
-          value={formData[field]}
-          onChange={(e) => handleChange(field, e.target.value)}
-          placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
-        />
-      )}
-    </div>
-  );
+  const Input = ({ label, field, placeholder, type = "text", rows = 3, required = false }) => {
+    const handleInputChange = (e) => {
+      handleChange(field, e.target.value);
+    };
+
+    return (
+      <div className="mb-6">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {type === "textarea" ? (
+          <textarea
+            value={formData[field] || ''}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            rows={rows}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none resize-none"
+          />
+        ) : (
+          <input
+            type={type}
+            value={formData[field] || ''}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0055e5] focus:border-transparent transition-all outline-none"
+          />
+        )}
+      </div>
+    );
+  };
 
   const CheckboxGroup = ({ label, field, options }) => (
     <div className="mb-6">
@@ -216,20 +222,24 @@ const AIAgentForm = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Header */}
+      {/* Header/Menu Bar */}
+      <div className="bg-black py-4">
+        <div className="max-w-7xl mx-auto px-6 flex justify-center">
+          <img 
+            src="https://1000ideiascompany.com.br/wp-content/uploads/2025/04/Logo_horizontal_1000Ideias-Preto-origi-sem-fundo-e1745093705536.png" 
+            alt="1000Ideias Company" 
+            className="h-12"
+          />
+        </div>
+      </div>
+
+      {/* Hero Section */}
       <div className="bg-[#12172d] text-white py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex flex-col items-center text-center mb-8">
-            <img 
-              src="https://1000ideiascompany.com.br/wp-content/uploads/2025/04/Logo_horizontal_1000Ideias-Preto-origi-sem-fundo-e1745093705536.png" 
-              alt="1000Ideias Company" 
-              className="h-16 mb-6 bg-black px-6 py-3 rounded-xl"
-            />
-          </div>
-          <h1 className="text-5xl font-extrabold mb-4 text-center">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <h1 className="text-5xl font-extrabold mb-4">
             Briefing de Agente de IA
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto text-center">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto">
             Preencha este formulário para criarmos um agente de IA personalizado e inteligente para o seu negócio
           </p>
         </div>
@@ -437,7 +447,7 @@ const AIAgentForm = () => {
       </div>
 
       {/* Footer */}
-      <div className="bg-gradient-to-r from-[#0055e5] to-[#9c27b0] text-white py-8">
+      <div className="bg-[#12172d] text-white py-8">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="text-white/90">
             Powered by <span className="font-bold">1000Ideias Company</span> • Transformando Dados em Resultados
